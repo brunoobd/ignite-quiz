@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { View, ScrollView, Alert } from "react-native";
-import { HouseLine } from "phosphor-react-native";
+import { HouseLine, Trash } from "phosphor-react-native";
 
 import { Header } from "../../components/Header";
 import { HistoryCard, HistoryProps } from "../../components/HistoryCard";
@@ -10,17 +10,21 @@ import { styles } from "./styles";
 import { historyGetAll, historyRemove } from "../../storage/quizHistoryStorage";
 import { Loading } from "../../components/Loading";
 import { TouchableOpacityAnimated } from "../../components/TouchableOpacityAnimated";
-import {
+import Animated, {
   FadeIn,
   LinearTransition,
   SlideOutRight,
 } from "react-native-reanimated";
+import Swipeable, {
+  SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
+import { THEME } from "../../styles/theme";
 
 export function History() {
   const [isLoading, setIsLoading] = useState(true);
   const [history, setHistory] = useState<HistoryProps[]>([]);
-
   const { goBack } = useNavigation();
+  const swipeableRefs = useRef<Array<SwipeableMethods>>([]);
 
   async function fetchHistory() {
     const response = await historyGetAll();
@@ -34,7 +38,7 @@ export function History() {
     fetchHistory();
   }
 
-  function handleRemove(id: string) {
+  function handleRemove(id: string, index: number) {
     Alert.alert("Remover", "Deseja remover esse registro?", [
       {
         text: "Sim",
@@ -42,6 +46,8 @@ export function History() {
       },
       { text: "Não", style: "cancel" },
     ]);
+
+    swipeableRefs.current?.[index].close();
   }
 
   useEffect(() => {
@@ -65,16 +71,35 @@ export function History() {
         contentContainerStyle={styles.history}
         showsVerticalScrollIndicator={false}
       >
-        {history.map((item) => (
-          <TouchableOpacityAnimated
+        {history.map((item, index) => (
+          <Animated.View
             key={item.id}
-            onPress={() => handleRemove(item.id)}
             entering={FadeIn}
             exiting={SlideOutRight}
             layout={LinearTransition.springify()}
           >
-            <HistoryCard data={item} />
-          </TouchableOpacityAnimated>
+            <Swipeable
+              ref={(ref) => {
+                if (ref) {
+                  swipeableRefs.current.push(ref);
+                }
+              }}
+              containerStyle={styles.swipeableContainer}
+              renderLeftActions={() => (
+                <TouchableOpacityAnimated
+                  style={styles.swipeableRemove}
+                  onPress={() => handleRemove(item.id, index)}
+                >
+                  <Trash size={32} color={THEME.COLORS.GREY_100} />
+                </TouchableOpacityAnimated>
+              )}
+              renderRightActions={() => null}
+              overshootLeft={false}
+              overshootRight={false}
+            >
+              <HistoryCard data={item} />
+            </Swipeable>
+          </Animated.View>
         ))}
       </ScrollView>
     </View>
