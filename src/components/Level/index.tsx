@@ -1,8 +1,4 @@
 import {
-  TouchableOpacity,
-  TouchableOpacityProps,
-  Text,
-  View,
   Pressable,
   PressableProps,
 } from "react-native";
