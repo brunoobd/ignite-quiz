@@ -2,7 +2,7 @@ import { View, Text, Dimensions } from "react-native";
 
 import { Option } from "../Option";
 import { styles } from "./styles";
-import Animated, { Keyframe } from "react-native-reanimated";
+import Animated, { Keyframe, runOnJS } from "react-native-reanimated";
 
 type QuestionProps = {
   title: string;
@@ -13,12 +13,14 @@ type Props = {
   question: QuestionProps;
   alternativeSelected?: number | null;
   setAlternativeSelected?: (value: number) => void;
+  onUnmount: () => void;
 };
 
 export function Question({
   question,
   alternativeSelected,
   setAlternativeSelected,
+  onUnmount,
 }: Props) {
   const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -48,7 +50,11 @@ export function Question({
     <Animated.View
       style={styles.container}
       entering={enteringKeyframe.duration(400)}
-      exiting={exitingKeyframe.duration(400)}
+      exiting={exitingKeyframe.duration(400).withCallback((finished) => {
+        if (finished) {
+          runOnJS(onUnmount)();
+        }
+      })}
     >
       <Text style={styles.title}>{question.title}</Text>
 
