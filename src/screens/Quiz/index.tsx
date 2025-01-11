@@ -123,6 +123,7 @@ export function Quiz() {
         easing: Easing.bounce,
       },
       (finished) => {
+        "worklet";
         if (finished) {
           runOnJS(handleNextQuestion)();
         }
@@ -143,6 +144,7 @@ export function Quiz() {
       }
     })
     .onEnd((event) => {
+      "worklet";
       if (event.translationX < CARD_SKIP_AREA) {
         runOnJS(handleSkipConfirm)();
       }

@@ -51,6 +51,7 @@ export function Question({
       style={styles.container}
       entering={enteringKeyframe.duration(400)}
       exiting={exitingKeyframe.duration(400).withCallback((finished) => {
+        "worklet";
         if (finished) {
           runOnJS(onUnmount)();
         }
